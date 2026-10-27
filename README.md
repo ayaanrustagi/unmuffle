@@ -11,6 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/ayaanrustagi/unmuffle/releases/latest/download/Unmuffle.zip"><img src="https://img.shields.io/badge/Download-macOS%20app-7D5CFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS"></a>
+  <a href="#chrome-extension"><img src="https://img.shields.io/badge/Get%20it%20for-Chrome-FF5E8F?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome extension"></a>
 </p>
 
 <p align="center">
@@ -29,8 +30,9 @@ old stream, or recorded in a room that echoes. The dialogue is mush, there's a h
 under everything, the room rings, and the explosions blow your ears off while the
 whispers vanish.
 
-**Unmuffle fixes that live, for any app**: a browser tab, a video player, anything.
-Click the menu bar icon, hit the power button, pick a preset. That's it.
+**Unmuffle fixes that live.** On a Mac it cleans up everything you hear, from any app.
+In Chrome it cleans up the tab you're watching. Hit the power button, pick a preset.
+That's it.
 
 ## Hear the difference
 
@@ -78,8 +80,26 @@ Flip **Original / Enhanced** any time to compare. The live spectrum shows what c
 
 Needs macOS 14.2 (Sonoma) or later, on Apple Silicon or Intel.
 
+## Chrome extension
+
+<p align="center">
+  <img src="docs/images/chrome.png" width="720" alt="The Unmuffle Chrome extension in light and dark mode">
+</p>
+
+Same engine, same presets, inside the browser (Chrome, Edge, Brave, Arc, any Chromium
+browser 116+, on any OS). It captures the tab you're watching, cleans it up and plays
+it back.
+
+1. Download **[Unmuffle-Chrome.zip](https://github.com/ayaanrustagi/unmuffle/releases/latest/download/Unmuffle-Chrome.zip)** and unzip it.
+2. Go to `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and
+   pick the folder.
+3. On a tab that's playing something, click the Unmuffle icon and hit the power button.
+
+The JavaScript engine is a line-for-line port of the Swift one, and CI checks that both
+produce the same audio. More in [extension/README.md](extension/README.md).
+
 <details>
-<summary><b>Build it yourself</b></summary>
+<summary><b>Build the Mac app yourself</b></summary>
 
 ```sh
 git clone https://github.com/ayaanrustagi/unmuffle.git
@@ -174,13 +194,17 @@ them apart. That needs a machine-learning model, which is on the roadmap.
 It's tuned not to. Tests check that held chords lose less than 1 dB to noise removal.
 Echo removal does soften very long notes a little; turn Echo down for concerts.
 
-**Windows? Linux? A browser extension?**
-The engine builds anywhere Swift runs; the app is macOS-only for now. A Chrome
-extension is next.
+**Windows? Linux?**
+Use the Chrome extension: it runs anywhere Chrome does. The Mac app is macOS-only.
+
+**Why does the extension only work on one tab at a time?**
+Each enhanced tab is a separate audio capture, and one is what you need while watching
+something. Turning it on in another tab moves it there.
 
 ## Roadmap
 
-- [ ] Chrome extension (same engine, in the browser)
+- [x] Chrome extension (same engine, in the browser)
+- [ ] Chrome Web Store listing
 - [ ] Per-app capture (only clean up the browser, leave notifications alone)
 - [ ] ML dialogue isolation for laughs, coughs and people talking over the movie
 - [ ] Auto-pick the preset by listening to the audio
@@ -194,11 +218,13 @@ Sources/UnmuffleDSP/    the audio engine (cross-platform, tested)
 Sources/Unmuffle/       the macOS menu bar app (SwiftUI + Core Audio taps)
 Sources/unmuffle-cli/   the WAV command-line tool
 Tests/UnmuffleDSPTests/ engine tests
+extension/              the Chrome extension (JS port of the engine + tests)
 docs/demo/              demo generator and intelligibility scoring
 ```
 
 ```sh
-swift test      # runs on macOS or Linux
+swift test                                # engine, on macOS or Linux
+node --test "extension/test/*.test.js"    # extension engine
 ```
 
 The tests check what matters by ear: hiss drops by more than 12 dB while speech-like
@@ -212,8 +238,8 @@ PRs welcome, especially for the roadmap items.
 ## Credits
 
 Process-tap know-how from [AudioCap](https://github.com/insidegui/AudioCap) and
-[FineTune](https://github.com/ronitsingh10/FineTune). Demo audio credits are in
-[docs/demo/CREDITS.md](docs/demo/CREDITS.md).
+[FineTune](https://github.com/ronitsingh10/FineTune). Demo audio and icon credits are in
+[CREDITS.md](CREDITS.md).
 
 ## License
 

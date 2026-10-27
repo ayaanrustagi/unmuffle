@@ -9,10 +9,17 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Build app bundle
         run: ./scripts/build-app.sh
-      - name: Test
+      - name: Test engine
         run: swift test
+      - name: Check the extension engine matches the Swift one
+        run: |
+          swift build --product unmuffle-cli
+          UNMUFFLE_CLI="$(swift build --show-bin-path)/unmuffle-cli" node --test "extension/test/*.test.js"
       - uses: actions/upload-artifact@v4
         with:
           name: Unmuffle.app
@@ -23,5 +30,15 @@ jobs:
     container: swift:6.1-noble
     steps:
       - uses: actions/checkout@v4
-      - name: Test DSP
+      - name: Test engine
         run: swift test
+
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test extension engine
+        run: node --test "extension/test/*.test.js"
