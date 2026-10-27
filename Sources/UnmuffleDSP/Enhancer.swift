@@ -14,6 +14,27 @@ public struct EnhancerMeters: Equatable, Sendable {
     public init() {}
 }
 
+/// Live spectrum for the UI: 32 log-spaced bands from 50 Hz to 16 kHz, in dB
+/// (a full-scale sine reads about 0 dB).
+public struct EnhancerSpectrum: Equatable, Sendable {
+    public static let bandCount = SpectralCleaner.bandCount
+
+    /// What came in.
+    public var input: [Float]
+    /// The same audio after noise and echo removal.
+    public var output: [Float]
+
+    public init(input: [Float], output: [Float]) {
+        self.input = input
+        self.output = output
+    }
+
+    public static let silent = EnhancerSpectrum(
+        input: [Float](repeating: -120, count: bandCount),
+        output: [Float](repeating: -120, count: bandCount)
+    )
+}
+
 /// The full enhancement chain for one stereo stream.
 ///
 ///     rumble filter → noise + echo removal → EQ → exciter → mid/side
@@ -37,6 +58,8 @@ public final class Enhancer {
     private var sharedMeters = EnhancerMeters()
     private var unpublishedInputPeak: Float = 0
     private var unpublishedOutputPeak: Float = 0
+    private let sharedInputBands = FloatStorage(count: SpectralCleaner.bandCount, value: -120)
+    private let sharedOutputBands = FloatStorage(count: SpectralCleaner.bandCount, value: -120)
 
     private var rumbleFilter = StereoBiquad()
     private let cleaner: SpectralCleaner
@@ -98,6 +121,16 @@ public final class Enhancer {
         sharedMeters.inputPeak = 0
         sharedMeters.outputPeak = 0
         return meters
+    }
+
+    /// Latest spectrum, before and after cleanup.
+    public func readSpectrum() -> EnhancerSpectrum {
+        meterLock.lock()
+        defer { meterLock.unlock() }
+        return EnhancerSpectrum(
+            input: Array(UnsafeBufferPointer(start: sharedInputBands.pointer, count: sharedInputBands.count)),
+            output: Array(UnsafeBufferPointer(start: sharedOutputBands.pointer, count: sharedOutputBands.count))
+        )
     }
 
     /// Processes a stereo stream in place. Any frame count is fine.
@@ -189,6 +222,8 @@ public final class Enhancer {
             sharedMeters.cleanupDB = cleaner.reductionDB
             sharedMeters.levelerDB = leveler.gainDB
             sharedMeters.limiterDB = limiter.reductionDB
+            sharedInputBands.pointer.update(from: cleaner.inputBands.pointer, count: SpectralCleaner.bandCount)
+            sharedOutputBands.pointer.update(from: cleaner.outputBands.pointer, count: SpectralCleaner.bandCount)
             meterLock.unlock()
             unpublishedInputPeak = 0
             unpublishedOutputPeak = 0

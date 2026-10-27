@@ -39,6 +39,14 @@ final class SpectralCleaner {
     /// How much energy the last frame removed, in dB (0 or negative).
     private(set) var reductionDB: Float = 0
 
+    /// Log-spaced band levels in dB (a full-scale sine reads about 0), before and after
+    /// cleanup, for the spectrum display.
+    static let bandCount = 32
+    let inputBands: FloatStorage
+    let outputBands: FloatStorage
+    private let bandEdges: UnsafeMutablePointer<Int>
+    private let bandScale: Float
+
     private let fft: FFT
     private let bins: Int
     private let window: FloatStorage
@@ -150,6 +158,26 @@ final class SpectralCleaner {
         let decayRate = 3 * log(10.0) / rt60
         reverbDecay = Float(exp(-2 * decayRate * Double(reverbDelayFrames) * hopSeconds))
         history = FloatStorage(count: bins * reverbDelayFrames)
+
+        inputBands = FloatStorage(count: Self.bandCount, value: -120)
+        outputBands = FloatStorage(count: Self.bandCount, value: -120)
+        bandEdges = .allocate(capacity: Self.bandCount + 1)
+        let binWidth = sampleRate / Double(fftSize)
+        let low = 50.0
+        let high = min(16_000, sampleRate * 0.45)
+        var previous = 0
+        for b in 0...Self.bandCount {
+            let frequency = low * pow(high / low, Double(b) / Double(Self.bandCount))
+            let edge = min(max(Int((frequency / binWidth).rounded()), previous + 1), bins - 1)
+            bandEdges[b] = edge
+            previous = edge
+        }
+        // A full-scale sine through the sqrt-Hann window peaks at about (0.32 N)^2.
+        bandScale = 1 / (0.1 * Float(fftSize) * Float(fftSize))
+    }
+
+    deinit {
+        bandEdges.deallocate()
     }
 
     /// Processes audio in place. Output is delayed by `latency` samples.
@@ -192,6 +220,7 @@ final class SpectralCleaner {
 
         fft.forward(real: re, imag: im)
         let active = computeGains()
+        updateBands()
         if active {
             let g = gain.pointer
             for k in 0..<bins {
@@ -226,6 +255,23 @@ final class SpectralCleaner {
         for i in (n - h)..<n {
             outL[i] = 0
             outR[i] = 0
+        }
+    }
+
+    private func updateBands() {
+        let power = framePower.pointer
+        let g = gain.pointer
+        let input = inputBands.pointer
+        let output = outputBands.pointer
+        for b in 0..<Self.bandCount {
+            var before: Float = 0
+            var after: Float = 0
+            for k in bandEdges[b]..<bandEdges[b + 1] {
+                before += power[k]
+                after += power[k] * g[k] * g[k]
+            }
+            input[b] = 10 * log10f(before * bandScale + 1e-12)
+            output[b] = 10 * log10f(after * bandScale + 1e-12)
         }
     }
 

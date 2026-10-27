@@ -1,6 +1,7 @@
 #if os(macOS)
 import AppKit
 import Combine
+import ServiceManagement
 import UnmuffleDSP
 
 /// UI state. Lives on the main thread.
@@ -14,6 +15,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var meters = EnhancerMeters()
+    @Published private(set) var spectrum = EnhancerSpectrum.silent
+    @Published private(set) var outputDeviceName: String?
+    @Published private(set) var launchAtLogin = SMAppService.mainApp.status == .enabled
     /// True when we're running but have heard nothing for a while, which usually means
     /// the System Audio Recording permission hasn't been granted.
     @Published private(set) var seemsSilent = false
@@ -22,6 +26,7 @@ final class AppModel: ObservableObject {
     private var meterTimer: Timer?
     private var lastHeard = Date()
     private static let settingsKey = "settings.v1"
+    private static let repository = URL(string: "https://github.com/ayaanrustagi/unmuffle")!
 
     init() {
         settings = Self.loadSettings()
@@ -32,6 +37,22 @@ final class AppModel: ObservableObject {
 
     var activePreset: Preset? { Preset.matching(settings) }
 
+    var statusText: String {
+        guard isRunning else { return "Off" }
+        let device = outputDeviceName.map { " · \($0)" } ?? ""
+        return (settings.isEnabled ? "Enhancing" : "Playing the original") + device
+    }
+
+    /// Average gap between the original and cleaned-up spectrum bars, so the number
+    /// matches what the display shows. (Total energy removed reads tiny while someone is
+    /// talking, because the voice dominates it.)
+    var cleanupText: String {
+        guard settings.isEnabled else { return "Bypassed" }
+        let gaps = zip(spectrum.input, spectrum.output).map { max($0 - $1, 0) }
+        let removed = gaps.reduce(0, +) / Float(max(gaps.count, 1))
+        return removed >= 0.5 ? String(format: "−%.0f dB noise & echo", removed) : "Listening…"
+    }
+
     func setRunning(_ running: Bool) {
         running ? start() : stop()
     }
@@ -41,6 +62,7 @@ final class AppModel: ObservableObject {
         do {
             try engine.start(settings: settings)
             isRunning = true
+            outputDeviceName = engine.outputDeviceName
             errorMessage = nil
             lastHeard = Date()
             seemsSilent = false
@@ -55,6 +77,8 @@ final class AppModel: ObservableObject {
         isRunning = false
         stopMeters()
         meters = EnhancerMeters()
+        spectrum = .silent
+        outputDeviceName = nil
         seemsSilent = false
     }
 
@@ -62,6 +86,23 @@ final class AppModel: ObservableObject {
         var next = preset.settings
         next.isEnabled = settings.isEnabled
         settings = next
+    }
+
+    func openGitHub() {
+        NSWorkspace.shared.open(Self.repository)
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            errorMessage = "Couldn't change Launch at Login: \(error.localizedDescription)"
+        }
+        launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 
     func openPrivacySettings() {
@@ -76,6 +117,7 @@ final class AppModel: ObservableObject {
         engine.stop()
         do {
             try engine.start(settings: settings)
+            outputDeviceName = engine.outputDeviceName
         } catch {
             isRunning = false
             stopMeters()
@@ -87,7 +129,7 @@ final class AppModel: ObservableObject {
 
     private func startMeters() {
         stopMeters()
-        let timer = Timer(timeInterval: 1.0 / 20, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1.0 / 30, repeats: true) { [weak self] _ in
             self?.pollMeters()
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -106,6 +148,16 @@ final class AppModel: ObservableObject {
         display.inputPeak = max(latest.inputPeak, meters.inputPeak * 0.85)
         display.outputPeak = max(latest.outputPeak, meters.outputPeak * 0.85)
         meters = display
+
+        if let fresh = engine.readSpectrum(), fresh.input.count == spectrum.input.count {
+            // Bars jump up instantly and fall back smoothly.
+            var smoothed = fresh
+            for i in smoothed.input.indices {
+                smoothed.input[i] = max(fresh.input[i], spectrum.input[i] - 1.8)
+                smoothed.output[i] = max(fresh.output[i], spectrum.output[i] - 1.8)
+            }
+            spectrum = smoothed
+        }
 
         if latest.inputPeak > 1e-4 {
             lastHeard = Date()

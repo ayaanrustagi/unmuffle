@@ -19,6 +19,8 @@ final class SystemAudioEngine {
     var onOutputDeviceChange: (() -> Void)?
 
     private(set) var isRunning = false
+    /// Name of the device we're playing through, e.g. "AirPods Pro".
+    private(set) var outputDeviceName: String?
     private var outputDevice = HAL.unknown
     private var enhancer: Enhancer?
     private var renderer: TapRenderer?
@@ -38,6 +40,7 @@ final class SystemAudioEngine {
         stop()
         do {
             outputDevice = try HAL.defaultOutputDevice()
+            outputDeviceName = try? HAL.readString(outputDevice, kAudioObjectPropertyName)
             let outputUID = try HAL.deviceUID(outputDevice)
             let tapUID = try createTap()
             try createAggregate(outputUID: outputUID, tapUID: tapUID, bluetooth: HAL.isBluetooth(outputDevice))
@@ -80,6 +83,7 @@ final class SystemAudioEngine {
         }
         procID = nil
         outputDevice = HAL.unknown
+        outputDeviceName = nil
         aggregateID = HAL.unknown
         tapID = HAL.unknown
         renderer = nil
@@ -93,6 +97,10 @@ final class SystemAudioEngine {
 
     func readMeters() -> EnhancerMeters? {
         enhancer?.readMeters()
+    }
+
+    func readSpectrum() -> EnhancerSpectrum? {
+        enhancer?.readSpectrum()
     }
 
     // MARK: - Setup

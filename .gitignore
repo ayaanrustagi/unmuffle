@@ -5,3 +5,5 @@ build/
 DerivedData/
 .DS_Store
 *.wav
+.build-static/
+__pycache__/

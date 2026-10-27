@@ -76,9 +76,9 @@ public struct Preset: Identifiable, Equatable, Sendable {
     public static let camRip = Preset(
         id: "cam",
         name: "Cam Recording",
-        summary: "Filmed in a theater: heavy noise, room echo, muffled voices.",
+        summary: "Filmed in a theater: noise, echo, muffled voices.",
         settings: EnhancerSettings(
-            noiseReduction: 0.7, dereverb: 0.6, dialogue: 0.7, clarity: 0.55,
+            noiseReduction: 0.7, dereverb: 0.75, dialogue: 0.7, clarity: 0.55,
             bass: 0.35, width: 0.45, leveling: 0.7, boostDB: 6
         )
     )
@@ -96,7 +96,7 @@ public struct Preset: Identifiable, Equatable, Sendable {
     public static let quietStream = Preset(
         id: "quiet",
         name: "Too Quiet",
-        summary: "Clean but way too quiet, or dialogue buried under the music.",
+        summary: "Clean but too quiet, or dialogue buried in music.",
         settings: EnhancerSettings(
             noiseReduction: 0.15, dereverb: 0, dialogue: 0.5, clarity: 0.2,
             bass: 0.15, width: 0.15, leveling: 0.8, boostDB: 9
@@ -106,7 +106,7 @@ public struct Preset: Identifiable, Equatable, Sendable {
     public static let night = Preset(
         id: "night",
         name: "Night Mode",
-        summary: "Everything at one volume. Clear voices, tamed explosions.",
+        summary: "One steady volume. Clear voices, tamed explosions.",
         settings: EnhancerSettings(
             noiseReduction: 0.45, dereverb: 0.2, dialogue: 0.8, clarity: 0.3,
             bass: 0, width: 0.1, leveling: 1, boostDB: 6
@@ -116,7 +116,7 @@ public struct Preset: Identifiable, Equatable, Sendable {
     public static let maximum = Preset(
         id: "max",
         name: "Maximum",
-        summary: "Everything cranked. For the worst recordings out there.",
+        summary: "Everything cranked, for the worst recordings.",
         settings: EnhancerSettings(
             noiseReduction: 1, dereverb: 0.9, dialogue: 0.9, clarity: 0.8,
             bass: 0.5, width: 0.6, leveling: 0.9, boostDB: 9

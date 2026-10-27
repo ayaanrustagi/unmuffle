@@ -8,6 +8,8 @@
 	<string>Unmuffle</string>
 	<key>CFBundleExecutable</key>
 	<string>Unmuffle</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>app.unmuffle.Unmuffle</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -26,6 +28,8 @@
 	<true/>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>Unmuffle cleans up the audio your Mac is playing in real time. Nothing is recorded, saved, or sent anywhere.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>MIT License. github.com/ayaanrustagi/unmuffle</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 </dict>

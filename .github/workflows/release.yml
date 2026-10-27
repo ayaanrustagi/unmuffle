@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build universal app
+        run: UNIVERSAL=1 ./scripts/build-app.sh
+      - name: Zip
+        run: cd build && ditto -c -k --keepParent Unmuffle.app Unmuffle.zip
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: build/Unmuffle.zip
+          generate_release_notes: true

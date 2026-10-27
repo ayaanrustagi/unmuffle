@@ -301,6 +301,29 @@ final class EnhancerTests: XCTestCase {
         XCTAssertEqual(enhancer.readMeters().inputPeak, 0)
     }
 
+    func testSpectrumShowsToneAndRemovedNoise() {
+        var settings = EnhancerSettings.neutral
+        settings.noiseReduction = 0.8
+        let enhancer = Enhancer(sampleRate: sampleRate, settings: settings)
+        var noise = SeededNoise(seed: 12)
+        // 12.5 segments of 12,000 samples: ends halfway through a tone segment.
+        let n = 12_000 * 12 + 6_000
+        let input = (0..<n).map { i -> Float in
+            let on = (i / 12_000) % 2 == 0
+            return (on ? 0.25 * Float(sin(2 * Double.pi * 1000 * Double(i) / sampleRate)) : 0) + 0.003 * noise.next()
+        }
+        _ = enhance(enhancer, left: input, right: input)
+        let spectrum = enhancer.readSpectrum()
+        XCTAssertEqual(spectrum.input.count, EnhancerSpectrum.bandCount)
+        // The last block was a tone segment: the loudest band sits near 1 kHz.
+        let loudest = spectrum.input.indices.max { spectrum.input[$0] < spectrum.input[$1] }!
+        let lowEdge = 50 * pow(16_000 / 50, Float(loudest) / Float(EnhancerSpectrum.bandCount))
+        let highEdge = 50 * pow(16_000 / 50, Float(loudest + 1) / Float(EnhancerSpectrum.bandCount))
+        XCTAssertTrue(lowEdge <= 1100 && highEdge >= 900, "loudest band \(lowEdge)-\(highEdge) Hz")
+        // Hiss-only bands at the top come out quieter than they went in.
+        XCTAssertLessThan(spectrum.output[30], spectrum.input[30] - 6)
+    }
+
     func testSettingsUpdateIsPickedUp() {
         let enhancer = Enhancer(sampleRate: sampleRate, settings: .neutral)
         var loud = EnhancerSettings.neutral
