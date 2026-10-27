@@ -24,6 +24,7 @@ async function start(streamId, settings) {
   node.port.onmessage = (event) => metersPort?.postMessage(event.data);
   node.port.postMessage({ type: "meters", enabled: metersPort !== null });
   source.connect(node).connect(context.destination);
+  await context.resume();
 
   // The tab was closed or navigated somewhere that ended the capture.
   stream.getAudioTracks()[0]?.addEventListener("ended", () => {

@@ -34,10 +34,22 @@ async function stop() {
   await setActiveTab(null);
 }
 
+// The offscreen document can take a moment to start listening after it's created.
+async function sendToOffscreen(message, attempts = 5) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await chrome.runtime.sendMessage({ target: "offscreen", ...message });
+    } catch (error) {
+      if (attempt >= attempts || !/Receiving end does not exist/.test(error.message)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 50 * attempt));
+    }
+  }
+}
+
 async function start(tabId, streamId) {
   await ensureOffscreen();
   const { settings } = await getState();
-  const result = await chrome.runtime.sendMessage({ target: "offscreen", type: "start", streamId, settings });
+  const result = await sendToOffscreen({ type: "start", streamId, settings });
   if (!result?.ok) {
     await stop();
     throw new Error(result?.error || "Couldn't start audio processing.");
@@ -52,7 +64,7 @@ const handlers = {
   ended: () => stop().then(() => ({ ok: true })),
   settings: async (message) => {
     if (await chrome.offscreen.hasDocument()) {
-      await chrome.runtime.sendMessage({ target: "offscreen", type: "settings", settings: message.settings });
+      await sendToOffscreen({ type: "settings", settings: message.settings });
     }
     return { ok: true };
   },
