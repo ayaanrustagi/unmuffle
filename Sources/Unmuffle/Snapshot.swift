@@ -13,6 +13,7 @@ enum Snapshot {
 
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
+        NSApp.activate(ignoringOtherApps: true)
         let shots: [(name: String, appearance: NSAppearance.Name, adjust: Bool)] = [
             ("window-light", .aqua, false),
             ("window-dark", .darkAqua, false),
@@ -27,14 +28,26 @@ enum Snapshot {
             let view = NSHostingView(rootView: root)
             view.appearance = NSAppearance(named: shot.appearance)
             view.frame = NSRect(origin: .zero, size: view.fittingSize)
-            let window = NSWindow(contentRect: view.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+            // A titled, key window, so controls draw in their active colors (the menu bar
+            // window is key whenever it's open). Only the content view is captured.
+            let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
             window.appearance = NSAppearance(named: shot.appearance)
             window.contentView = view
+            window.makeKeyAndOrderFront(nil)
             view.layoutSubtreeIfNeeded()
             RunLoop.current.run(until: Date().addingTimeInterval(0.5))
 
-            guard let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { continue }
+            // Render at 2x so the images are sharp on Retina screens and in the README.
+            let scale: CGFloat = 2
+            guard let bitmap = NSBitmapImageRep(
+                bitmapDataPlanes: nil,
+                pixelsWide: Int(view.bounds.width * scale), pixelsHigh: Int(view.bounds.height * scale),
+                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+            ) else { continue }
+            bitmap.size = view.bounds.size
             view.cacheDisplay(in: view.bounds, to: bitmap)
+            window.orderOut(nil)
             if let png = bitmap.representation(using: .png, properties: [:]) {
                 try? png.write(to: folder.appendingPathComponent("\(shot.name).png"))
                 print("wrote \(shot.name).png")

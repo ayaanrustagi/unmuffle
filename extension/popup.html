@@ -8,63 +8,45 @@
 </head>
 <body>
   <main class="panel">
-    <header class="header">
-      <svg class="glyph" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-        <rect width="30" height="30" rx="8.1" fill="#6C4DFF"/>
-        <g fill="#fff"><rect x="5.9" y="12" width="2.2" height="6" rx="1.1"/><rect x="9.9" y="9.5" width="2.2" height="11" rx="1.1"/><rect x="13.9" y="7.5" width="2.2" height="15" rx="1.1"/><rect x="17.9" y="10" width="2.2" height="10" rx="1.1"/><rect x="21.9" y="12" width="2.2" height="6" rx="1.1"/></g>
-      </svg>
+    <div class="head">
       <div class="titles">
         <div class="title">Unmuffle</div>
         <div class="status" id="status">Off</div>
       </div>
-      <button class="power" id="power" title="Turn Unmuffle on for this tab" aria-pressed="false">
-        <svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
-      </button>
-    </header>
-
-    <div class="banner" id="banner" hidden>
-      <strong id="banner-title"></strong>
-      <span id="banner-message"></span>
+      <label class="toggle" title="Turn Unmuffle on for this tab"><input type="checkbox" id="power" role="switch" aria-label="Unmuffle"><span></span></label>
     </div>
 
-    <section class="spectrum card">
-      <canvas id="spectrum" width="288" height="70"></canvas>
-      <div class="legend">
-        <span class="key" id="legend-original"><i class="ghost"></i>Original</span>
-        <span class="key" id="legend-enhanced"><i class="bright"></i>Enhanced</span>
-        <span class="cleanup" id="cleanup"></span>
-        <span class="hint" id="hint">Turn it on, then play something.</span>
+    <div class="notice" id="notice" hidden></div>
+
+    <div class="display"><canvas id="analyzer"></canvas></div>
+    <div class="readout">
+      <span><i class="lg-original"></i>Original</span>
+      <span id="legend-clean"><i class="lg-clean"></i>Cleaned</span>
+      <output id="cleanup">Off</output>
+    </div>
+
+    <div class="row">
+      <span>Preset</span>
+      <select id="preset" aria-label="Preset"></select>
+    </div>
+    <p class="summary" id="summary"></p>
+    <div class="row">
+      <span>Listen to</span>
+      <div class="segmented" role="radiogroup" aria-label="Listen to">
+        <button data-enhanced="false" role="radio" aria-checked="false">Original</button>
+        <button data-enhanced="true" role="radio" aria-checked="true">Enhanced</button>
       </div>
-    </section>
-
-    <div class="switch" role="radiogroup" aria-label="Listen to">
-      <button data-enhanced="false" role="radio">Original</button>
-      <button data-enhanced="true" role="radio">Enhanced</button>
     </div>
 
-    <section class="presets">
-      <div class="label">Preset</div>
-      <div class="tiles" id="tiles"></div>
-      <p class="summary" id="summary"></p>
-    </section>
+    <details id="adjust">
+      <summary>Adjust</summary>
+      <div class="sliders" id="sliders"></div>
+    </details>
 
-    <section class="tune">
-      <button class="tune-toggle" id="tune-toggle" aria-expanded="false">
-        <span class="label">Fine-tune</span>
-        <svg class="chevron" viewBox="0 0 24 24" width="11" height="11"><path d="m9 18 6-6-6-6"/></svg>
-        <span class="custom" id="custom" hidden>Custom</span>
-      </button>
-      <div class="sliders" id="sliders" hidden></div>
-    </section>
-
-    <hr>
-    <footer class="footer">
-      <svg viewBox="0 0 24 24" width="10" height="10"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      <span>Processed on your device. Nothing is recorded.</span>
-      <a href="https://github.com/ayaanrustagi/unmuffle" target="_blank" title="Unmuffle on GitHub">
-        <svg viewBox="0 0 24 24" width="15" height="15"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
-      </a>
-    </footer>
+    <div class="foot">
+      <span>Runs on your device. Nothing is recorded.</span>
+      <a href="https://github.com/ayaanrustagi/unmuffle" target="_blank">GitHub</a>
+    </div>
   </main>
 </body>
 </html>

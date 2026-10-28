@@ -16,10 +16,6 @@ theater by `docs/demo/make_demo.py`.
 
 All of these are in the librosa sample data: https://github.com/librosa/data
 
-## Icons
-
-The Chrome extension's icons are from [Lucide](https://lucide.dev) (ISC license).
-
 ## Process taps
 
 How to capture and route system audio with Core Audio taps was worked out with help from
