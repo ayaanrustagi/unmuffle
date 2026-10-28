@@ -104,10 +104,10 @@ def spectrogram_figure(before, after, path):
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap
 
-    cmap = LinearSegmentedColormap.from_list("unmuffle", ["#0b0a12", "#24184f", "#7d5cff", "#ff5e8f", "#ffe3ec"])
+    cmap = LinearSegmentedColormap.from_list("unmuffle", ["#0f0e15", "#2a2266", "#6c4dff", "#ffffff"])
     plt.rcParams["font.family"] = ["Inter", "DejaVu Sans"]
     fig, axes = plt.subplots(2, 1, figsize=(12, 6.6), dpi=160, sharex=True)
-    fig.patch.set_facecolor("#0b0a12")
+    fig.patch.set_facecolor("#0f0e15")
     labels = [("Before", "simulated theater recording: echo, AC noise, hiss, phone mic"),
               ("After", "Unmuffle, Cam Recording preset")]
     for ax, audio, (title, subtitle) in zip(axes, [before, after], labels):
@@ -116,7 +116,7 @@ def spectrogram_figure(before, after, path):
         db -= db.max()
         ax.pcolormesh(t, f / 1000, db, cmap=cmap, vmin=-85, vmax=0, shading="auto", rasterized=True)
         ax.set_ylim(0, 12)
-        ax.set_facecolor("#0b0a12")
+        ax.set_facecolor("#0f0e15")
         ax.tick_params(colors="#8f8aa3", labelsize=9)
         for spine in ax.spines.values():
             spine.set_visible(False)

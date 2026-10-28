@@ -35,6 +35,14 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// A model that looks like it's running, without touching any audio. For screenshots.
+    init(preview: Void) {
+        settings = Preset.camRip.settings
+        isRunning = true
+        outputDeviceName = "AirPods Pro"
+        spectrum = Self.sampleSpectrum
+    }
+
     var activePreset: Preset? { Preset.matching(settings) }
 
     var statusText: String {
@@ -166,6 +174,12 @@ final class AppModel: ObservableObject {
             seemsSilent = true
         }
     }
+
+    /// A real moment from the demo recording (a voice over strings in a reverberant room).
+    static let sampleSpectrum = EnhancerSpectrum(
+        input: [-45, -42, -34, -28, -30, -36, -39, -37, -29, -28, -29, -34, -37, -35, -40, -40, -39, -34, -42, -46, -48, -43, -44, -43, -48, -50, -56, -65, -71, -70, -69, -70],
+        output: [-46, -42, -34, -30, -34, -42, -50, -42, -32, -28, -29, -36, -39, -36, -43, -51, -53, -34, -49, -57, -61, -49, -57, -50, -62, -56, -69, -78, -79, -84, -83, -81]
+    )
 
     // MARK: - Persistence
 

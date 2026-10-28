@@ -5,6 +5,14 @@ import SwiftUI
 struct UnmuffleApp: App {
     @StateObject private var model = AppModel()
 
+    init() {
+        Snapshot.runIfRequested()
+    }
+
+    init() {
+        Snapshot.runIfRequested()
+    }
+
     var body: some Scene {
         MenuBarExtra {
             ContentView()

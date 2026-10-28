@@ -97,9 +97,7 @@ function drawSpectrum() {
 
   const styles = getComputedStyle(document.documentElement);
   const ghost = styles.getPropertyValue("--ghost").trim();
-  const gradient = ctx.createLinearGradient(0, height, 0, 0);
-  gradient.addColorStop(0, "#7d5cff");
-  gradient.addColorStop(1, "#ff5e8f");
+  const accent = styles.getPropertyValue("--accent").trim();
 
   const gap = 3;
   const barWidth = (width - gap * (BANDS - 1)) / BANDS;
@@ -117,7 +115,7 @@ function drawSpectrum() {
       continue;
     }
     bar(i, barHeight(state.spectrum.input[i]), ghost);
-    if (state.settings.isEnabled) bar(i, barHeight(state.spectrum.output[i]), gradient);
+    if (state.settings.isEnabled) bar(i, barHeight(state.spectrum.output[i]), accent);
   }
 
   // Average gap between the bars, the same number the Mac app shows.

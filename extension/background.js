@@ -23,7 +23,7 @@ async function setActiveTab(tabId) {
   if (activeTabId !== null) chrome.action.setBadgeText({ tabId: activeTabId, text: "" }).catch(() => {});
   await chrome.storage.session.set({ activeTabId: tabId });
   if (tabId !== null) {
-    chrome.action.setBadgeBackgroundColor({ tabId, color: "#7D5CFF" });
+    chrome.action.setBadgeBackgroundColor({ tabId, color: "#6C4DFF" });
     chrome.action.setBadgeTextColor?.({ tabId, color: "#FFFFFF" });
     chrome.action.setBadgeText({ tabId, text: "ON" });
   }

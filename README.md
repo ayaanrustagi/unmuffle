@@ -10,15 +10,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ayaanrustagi/unmuffle/releases/latest/download/Unmuffle.zip"><img src="https://img.shields.io/badge/Download-macOS%20app-7D5CFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS"></a>
-  <a href="#chrome-extension"><img src="https://img.shields.io/badge/Get%20it%20for-Chrome-FF5E8F?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome extension"></a>
+  <a href="https://github.com/ayaanrustagi/unmuffle/releases/latest/download/Unmuffle.zip"><img src="https://img.shields.io/badge/Download-macOS%20app-6C4DFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS"></a>
+  <a href="#chrome-extension"><img src="https://img.shields.io/badge/Get%20it%20for-Chrome-6C4DFF?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome extension"></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/ayaanrustagi/unmuffle/actions/workflows/ci.yml"><img src="https://github.com/ayaanrustagi/unmuffle/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/macOS-14.2%2B-111?logo=apple" alt="macOS 14.2+">
   <img src="https://img.shields.io/badge/Swift-5.9%2B-F05138?logo=swift&logoColor=white" alt="Swift 5.9+">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-FF5E8F" alt="MIT license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-6C4DFF" alt="MIT license"></a>
 </p>
 
 <p align="center">

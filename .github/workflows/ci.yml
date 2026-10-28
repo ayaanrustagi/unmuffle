@@ -42,3 +42,30 @@ jobs:
           node-version: 22
       - name: Test extension engine
         run: node --test "extension/test/*.test.js"
+
+  screenshots:
+    # Renders the real menu bar window on a Mac and publishes the PNGs to the
+    # `screenshots` branch, so the README always shows the app as it is.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build app bundle
+        run: ./scripts/build-app.sh
+      - name: Render the window
+        timeout-minutes: 3
+        run: build/Unmuffle.app/Contents/MacOS/Unmuffle --snapshot "$RUNNER_TEMP/screenshots"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: ${{ runner.temp }}/screenshots
+      - name: Publish to the screenshots branch
+        run: |
+          cd "$RUNNER_TEMP/screenshots"
+          git init -q -b screenshots
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Screenshots for ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" screenshots
