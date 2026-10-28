@@ -9,43 +9,54 @@
 <body>
   <main class="panel">
     <div class="head">
+      <img class="icon" src="icons/48.png" alt="">
       <div class="titles">
         <div class="title">Unmuffle</div>
-        <div class="status" id="status">Off</div>
+        <div class="status"><span class="bars" id="bars"><i></i><i></i><i></i><i></i></span><span id="status">Off</span></div>
       </div>
       <label class="toggle" title="Turn Unmuffle on for this tab"><input type="checkbox" id="power" role="switch" aria-label="Unmuffle"><span></span></label>
     </div>
 
     <div class="notice" id="notice" hidden></div>
 
-    <div class="display"><canvas id="analyzer"></canvas></div>
-    <div class="readout">
-      <span><i class="lg-original"></i>Original</span>
-      <span id="legend-clean"><i class="lg-clean"></i>Cleaned</span>
-      <output id="cleanup">Off</output>
-    </div>
-
-    <div class="row">
-      <span>Preset</span>
-      <select id="preset" aria-label="Preset"></select>
-    </div>
-    <p class="summary" id="summary"></p>
-    <div class="row">
-      <span>Listen to</span>
-      <div class="segmented" role="radiogroup" aria-label="Listen to">
-        <button data-enhanced="false" role="radio" aria-checked="false">Original</button>
-        <button data-enhanced="true" role="radio" aria-checked="true">Enhanced</button>
+    <section class="card analyzer">
+      <div class="display">
+        <canvas id="analyzer"></canvas>
+        <output id="cleanup"></output>
       </div>
-    </div>
+      <div class="legend">
+        <span><i class="lg-original"></i>Original</span>
+        <span id="legend-clean"><i class="lg-clean"></i>Cleaned</span>
+        <div class="segmented" role="radiogroup" aria-label="Listen to">
+          <button data-enhanced="false" role="radio" aria-checked="false">Original</button>
+          <button data-enhanced="true" role="radio" aria-checked="true">Enhanced</button>
+        </div>
+      </div>
+    </section>
 
-    <details id="adjust">
-      <summary>Adjust</summary>
-      <div class="sliders" id="sliders"></div>
-    </details>
+    <section class="group">
+      <div class="section"><span>Preset</span><b id="preset-name"></b></div>
+      <div class="card tabs" id="presets" role="radiogroup" aria-label="Preset"></div>
+      <p class="summary" id="summary"></p>
+    </section>
+
+    <section class="group">
+      <div class="section"><span>Boost</span></div>
+      <div class="pill" id="boost" role="slider" tabindex="0" aria-label="Boost" title="Extra volume. A limiter keeps it from distorting.">
+        <div class="pill-fill"></div>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z"/><path class="wave" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.6a6 6 0 0 1 0 8.8"/></svg>
+        <output></output>
+      </div>
+    </section>
+
+    <section class="group">
+      <button class="section disclosure" id="adjust-toggle" aria-expanded="false" aria-controls="faders"><span><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2l3 3-3 3"/></svg>Adjust</span><b id="stages"></b></button>
+      <div class="card faders" id="faders" hidden></div>
+    </section>
 
     <div class="foot">
       <span>Runs on your device. Nothing is recorded.</span>
-      <a href="https://github.com/ayaanrustagi/unmuffle" target="_blank">GitHub</a>
+      <a class="star" href="https://github.com/ayaanrustagi/unmuffle" target="_blank" title="Star Unmuffle on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg>GitHub</a>
     </div>
   </main>
 </body>

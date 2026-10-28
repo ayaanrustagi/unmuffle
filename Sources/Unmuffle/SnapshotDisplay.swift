@@ -52,19 +52,35 @@ final class SnapshotDisplay {
         guard let id = (display.value(forKey: "displayID") as? NSNumber)?.uint32Value, id != 0 else {
             Self.fail("the display has no ID"); return nil
         }
-        RunLoop.current.run(until: Date().addingTimeInterval(1))
-        Self.useHiDPIMode(id)
-        RunLoop.current.run(until: Date().addingTimeInterval(1))
-
+        // AppKit learns about new screens from window server events, so let those through.
         let number = NSDeviceDescriptionKey("NSScreenNumber")
-        guard let screen = NSScreen.screens.first(where: { ($0.deviceDescription[number] as? NSNumber)?.uint32Value == id })
-        else { Self.fail("display \(id) isn't among the \(NSScreen.screens.count) screens"); return nil }
+        func findScreen() -> NSScreen? {
+            NSScreen.screens.first { ($0.deviceDescription[number] as? NSNumber)?.uint32Value == id }
+        }
+        Self.handleEvents(for: 8) { findScreen() != nil }
+        Self.useHiDPIMode(id)
+        Self.handleEvents(for: 4) { (findScreen()?.backingScaleFactor ?? 1) >= 2 }
+
+        guard let screen = findScreen() else {
+            let bounds = CGDisplayBounds(id)
+            Self.fail("display \(id) (\(Int(bounds.width))x\(Int(bounds.height))) isn't among the \(NSScreen.screens.count) screens")
+            return nil
+        }
         self.display = display
         self.screen = screen
     }
 
     private static func fail(_ reason: String) {
         print("no HiDPI virtual screen: \(reason)")
+    }
+
+    private static func handleEvents(for seconds: TimeInterval, until done: () -> Bool) {
+        let deadline = Date().addingTimeInterval(seconds)
+        while Date() < deadline, !done() {
+            if let event = NSApp.nextEvent(matching: .any, until: Date().addingTimeInterval(0.05), inMode: .default, dequeue: true) {
+                NSApp.sendEvent(event)
+            }
+        }
     }
 
     private static func alloc(_ cls: AnyClass) -> AnyObject? {
