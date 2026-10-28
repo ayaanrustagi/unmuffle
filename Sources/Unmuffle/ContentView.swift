@@ -345,6 +345,7 @@ private struct LegendKey: View {
             Capsule().fill(color).frame(width: 12, height: 2)
             Text(label)
         }
+        .fixedSize()
         .font(.caption)
         .foregroundStyle(.secondary)
     }
@@ -490,7 +491,7 @@ private extension Preset {
     var symbol: String {
         switch id {
         case "cam": return "film"
-        case "telesync": return "cable.connector"
+        case "telesync": return "waveform"
         case "quiet": return "speaker.wave.1"
         case "night": return "moon.stars"
         case "max": return "bolt"

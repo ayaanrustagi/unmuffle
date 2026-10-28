@@ -17,7 +17,7 @@ final class SnapshotDisplay {
             let settingsClass = NSClassFromString("CGVirtualDisplaySettings") as? NSObject.Type,
             let modeClass = NSClassFromString("CGVirtualDisplayMode"),
             let displayClass = NSClassFromString("CGVirtualDisplay")
-        else { return nil }
+        else { Self.fail("CGVirtualDisplay classes not found"); return nil }
 
         let descriptor = descriptorClass.init()
         descriptor.setValue("Unmuffle Snapshot", forKey: "name")
@@ -32,7 +32,7 @@ final class SnapshotDisplay {
         guard let display = Self.alloc(displayClass)?
             .perform(NSSelectorFromString("initWithDescriptor:"), with: descriptor)?
             .takeUnretainedValue() as? NSObject
-        else { return nil }
+        else { Self.fail("couldn't create the display"); return nil }
 
         // 2560x1600 pixels, which a HiDPI screen shows as 1280x800 points.
         typealias ModeInit = @convention(c) (AnyObject, Selector, UInt32, UInt32, Double) -> Unmanaged<AnyObject>?
@@ -42,23 +42,29 @@ final class SnapshotDisplay {
             let allocatedMode = Self.alloc(modeClass),
             let mode = unsafeBitCast(modeInit, to: ModeInit.self)(allocatedMode, modeSelector, 2560, 1600, 60)?
                 .takeUnretainedValue()
-        else { return nil }
+        else { Self.fail("couldn't create the display mode"); return nil }
 
         let settings = settingsClass.init()
         settings.setValue(1, forKey: "hiDPI")
         settings.setValue([mode], forKey: "modes")
         _ = display.perform(NSSelectorFromString("applySettings:"), with: settings)
 
-        guard let id = (display.value(forKey: "displayID") as? NSNumber)?.uint32Value, id != 0 else { return nil }
+        guard let id = (display.value(forKey: "displayID") as? NSNumber)?.uint32Value, id != 0 else {
+            Self.fail("the display has no ID"); return nil
+        }
         RunLoop.current.run(until: Date().addingTimeInterval(1))
         Self.useHiDPIMode(id)
         RunLoop.current.run(until: Date().addingTimeInterval(1))
 
         let number = NSDeviceDescriptionKey("NSScreenNumber")
         guard let screen = NSScreen.screens.first(where: { ($0.deviceDescription[number] as? NSNumber)?.uint32Value == id })
-        else { return nil }
+        else { Self.fail("display \(id) isn't among the \(NSScreen.screens.count) screens"); return nil }
         self.display = display
         self.screen = screen
+    }
+
+    private static func fail(_ reason: String) {
+        print("no HiDPI virtual screen: \(reason)")
     }
 
     private static func alloc(_ cls: AnyClass) -> AnyObject? {
