@@ -13,7 +13,7 @@ enum Snapshot {
 
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
-        NSApp.activate(ignoringOtherApps: true)
+        print("macOS \(ProcessInfo.processInfo.operatingSystemVersionString), screen scale \(NSScreen.main?.backingScaleFactor ?? 0)")
         let shots: [(name: String, appearance: NSAppearance.Name, adjust: Bool)] = [
             ("window-light", .aqua, false),
             ("window-dark", .darkAqua, false),
@@ -24,36 +24,70 @@ enum Snapshot {
             UserDefaults.standard.set(shot.adjust, forKey: "adjustExpanded")
             let root = ContentView()
                 .environmentObject(AppModel(preview: ()))
-                .background(Color(nsColor: .windowBackgroundColor))
+                .background(Color(nsColor: .windowBackgroundColor), in: .rect(cornerRadius: 18))
             let view = NSHostingView(rootView: root)
             view.appearance = NSAppearance(named: shot.appearance)
             view.frame = NSRect(origin: .zero, size: view.fittingSize)
-            // A titled, key window, so controls draw in their active colors (the menu bar
-            // window is key whenever it's open). Only the content view is captured.
-            let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
-            window.appearance = NSAppearance(named: shot.appearance)
-            window.contentView = view
-            window.makeKeyAndOrderFront(nil)
-            view.layoutSubtreeIfNeeded()
-            RunLoop.current.run(until: Date().addingTimeInterval(0.5))
 
-            // Render at 2x so the images are sharp on Retina screens and in the README.
-            let scale: CGFloat = 2
-            guard let bitmap = NSBitmapImageRep(
-                bitmapDataPlanes: nil,
-                pixelsWide: Int(view.bounds.width * scale), pixelsHigh: Int(view.bounds.height * scale),
-                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
-                colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-            ) else { continue }
-            bitmap.size = view.bounds.size
-            view.cacheDisplay(in: view.bounds, to: bitmap)
-            window.orderOut(nil)
-            if let png = bitmap.representation(using: .png, properties: [:]) {
-                try? png.write(to: folder.appendingPathComponent("\(shot.name).png"))
-                print("wrote \(shot.name).png")
+            // Like the menu bar window: a panel that becomes key without activating the
+            // app, so controls draw in their active colors.
+            let panel = SnapshotPanel(
+                contentRect: view.frame, styleMask: [.borderless, .nonactivatingPanel],
+                backing: .buffered, defer: false
+            )
+            panel.isOpaque = false
+            panel.backgroundColor = .clear
+            panel.hasShadow = false
+            panel.appearance = NSAppearance(named: shot.appearance)
+            panel.contentView = view
+            panel.center()
+            panel.makeKeyAndOrderFront(nil)
+            view.layoutSubtreeIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(1))
+
+            let file = folder.appendingPathComponent("\(shot.name).png")
+            if #available(macOS 26.0, *), captureFromScreen(panel, to: file) {
+                print("wrote \(shot.name).png (captured)")
+            } else if draw(view, to: file) {
+                print("wrote \(shot.name).png (drawn)")
             }
+            panel.orderOut(nil)
         }
         exit(0)
     }
+
+    /// Liquid Glass is composited by the window server, so on macOS 26 the window is
+    /// captured from the screen. Drawing the view directly would leave the glass out.
+    private static func captureFromScreen(_ window: NSWindow, to file: URL) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        process.arguments = ["-x", "-o", "-l\(window.windowNumber)", file.path]
+        do {
+            try process.run()
+        } catch {
+            return false
+        }
+        process.waitUntilExit()
+        return process.terminationStatus == 0 && FileManager.default.fileExists(atPath: file.path)
+    }
+
+    /// Draws the view at 2x, so the images are sharp on Retina screens and in the README.
+    private static func draw(_ view: NSView, to file: URL) -> Bool {
+        let scale: CGFloat = 2
+        guard let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int(view.bounds.width * scale), pixelsHigh: Int(view.bounds.height * scale),
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ) else { return false }
+        bitmap.size = view.bounds.size
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        guard let png = bitmap.representation(using: .png, properties: [:]) else { return false }
+        return (try? png.write(to: file)) != nil
+    }
+}
+
+private final class SnapshotPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
 }
 #endif

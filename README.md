@@ -59,7 +59,7 @@ over three voices. [`docs/demo/score.py`](docs/demo/score.py) reproduces it.
 
 ## Install
 
-Needs macOS 14.2 or later.
+Needs macOS 14.2 or later. Built with Xcode 26, it uses Liquid Glass on macOS 26.
 
 ```sh
 git clone https://github.com/ayaanrustagi/unmuffle.git

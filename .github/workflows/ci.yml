@@ -6,9 +6,11 @@ on:
 
 jobs:
   macos:
-    runs-on: macos-15
+    # Xcode 26, so the app gets Liquid Glass on macOS 26.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+      - run: xcodebuild -version
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -24,6 +26,15 @@ jobs:
         with:
           name: Unmuffle.app
           path: build/Unmuffle.app
+
+  macos-xcode16:
+    # The app still builds with older Xcode, without the glass.
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: xcodebuild -version
+      - name: Build app
+        run: swift build --product Unmuffle
 
   linux:
     runs-on: ubuntu-latest
@@ -47,7 +58,7 @@ jobs:
     # Renders the real menu bar window on a Mac and publishes the PNGs to the
     # `screenshots` branch, so the README always shows the app as it is.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: macos-15
+    runs-on: macos-26
     permissions:
       contents: write
     steps:

@@ -3,13 +3,13 @@ import AppKit
 import SwiftUI
 import UnmuffleDSP
 
-/// The menu bar window. Standard macOS controls throughout, so it looks like it belongs.
+/// The menu bar window. Standard macOS controls throughout, with Liquid Glass on macOS 26.
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
     @AppStorage("adjustExpanded") private var adjustExpanded = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             header
 
             if let error = model.errorMessage {
@@ -22,29 +22,20 @@ struct ContentView: View {
                 )
             }
 
-            SpectrumView(spectrum: model.spectrum, active: model.isRunning, enhanced: model.settings.isEnabled)
-                .frame(height: 112)
-            readout
-
-            Divider()
-
-            row("Preset") {
-                Picker("Preset", selection: presetSelection) {
-                    ForEach(Preset.all) { preset in
-                        Text(preset.name).tag(preset.id)
-                    }
-                    if model.activePreset == nil {
-                        Text("Custom").tag("custom")
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.menu)
+            VStack(spacing: 6) {
+                SpectrumView(spectrum: model.spectrum, active: model.isRunning, enhanced: model.settings.isEnabled)
+                    .frame(height: 112)
+                readout
+                    .padding(.horizontal, 2)
             }
-            Text(model.activePreset?.summary ?? "Your own settings.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.leading, 72)
-                .padding(.top, -6)
+
+            VStack(alignment: .leading, spacing: 6) {
+                presets
+                Text(model.activePreset?.summary ?? "Your own settings.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 2)
+            }
 
             row("Listen to") {
                 Picker("Listen to", selection: $model.settings.isEnabled) {
@@ -56,7 +47,7 @@ struct ContentView: View {
             }
 
             DisclosureGroup("Adjust", isExpanded: $adjustExpanded) {
-                VStack(spacing: 4) {
+                VStack(spacing: 6) {
                     AdjustRow("Noise", "Hiss, hum, air conditioning, crowd murmur.", value: $model.settings.noiseReduction)
                     AdjustRow("Echo", "The big-room echo of a recording made in a theater.", value: $model.settings.dereverb)
                     AdjustRow("Dialogue", "Cuts boom and mud, brings voices forward.", value: $model.settings.dialogue)
@@ -70,11 +61,12 @@ struct ContentView: View {
                         format: { String(format: "+%.0f dB", $0) }
                     )
                 }
-                .padding(.top, 6)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .glassPanel(cornerRadius: 14)
+                .padding(.top, 8)
             }
             .font(.callout)
-
-            Divider()
 
             HStack {
                 Toggle("Launch at login", isOn: Binding(
@@ -85,10 +77,11 @@ struct ContentView: View {
                 Spacer()
                 Button("Quit") { NSApp.terminate(nil) }
                     .keyboardShortcut("q")
+                    .glassButtonStyle()
             }
             .font(.callout)
         }
-        .padding(12)
+        .padding(14)
         .frame(width: 320)
     }
 
@@ -123,13 +116,21 @@ struct ContentView: View {
         .foregroundStyle(.secondary)
     }
 
-    private var presetSelection: Binding<String> {
-        Binding(
-            get: { model.activePreset?.id ?? "custom" },
-            set: { id in
-                if let preset = Preset.all.first(where: { $0.id == id }) { model.apply(preset) }
+    /// One glass button per preset. The active one is tinted; none is when the sliders
+    /// don't match a preset.
+    private var presets: some View {
+        HStack(spacing: 6) {
+            ForEach(Preset.all) { preset in
+                Button {
+                    model.apply(preset)
+                } label: {
+                    Text(preset.shortName)
+                        .frame(maxWidth: .infinity)
+                }
+                .glassButtonStyle(prominent: model.activePreset == preset)
+                .help("\(preset.name). \(preset.summary)")
             }
-        )
+        }
     }
 
     private func row<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -216,7 +217,7 @@ struct SpectrumView: View {
             }
         }
         .padding(.horizontal, 8)
-        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color(white: 0.085)))
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(white: 0.085)))
         .environment(\.colorScheme, .dark)
     }
 
@@ -288,6 +289,20 @@ private struct AdjustRow: View {
     }
 }
 
+private extension Preset {
+    /// Short enough for five buttons in a row.
+    var shortName: String {
+        switch id {
+        case "cam": return "Cam"
+        case "telesync": return "Line"
+        case "quiet": return "Quiet"
+        case "night": return "Night"
+        case "max": return "Max"
+        default: return name
+        }
+    }
+}
+
 private struct Notice: View {
     let symbol: String
     let tint: Color
@@ -304,6 +319,7 @@ private struct Notice: View {
                 if let action {
                     Button(action.title, action: action.run)
                         .controlSize(.small)
+                        .glassButtonStyle()
                 }
             }
         }
