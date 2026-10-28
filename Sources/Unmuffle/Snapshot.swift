@@ -13,8 +13,10 @@ enum Snapshot {
 
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
-        useRetinaMode()
-        print("macOS \(ProcessInfo.processInfo.operatingSystemVersionString), screen scale \(NSScreen.main?.backingScaleFactor ?? 0)")
+        // CI screens run at 1x. Capture on a HiDPI virtual screen when we can.
+        let retina = SnapshotDisplay()
+        let screen = retina?.screen ?? NSScreen.main
+        print("macOS \(ProcessInfo.processInfo.operatingSystemVersionString), capturing at \(screen?.backingScaleFactor ?? 1)x")
         let shots: [(name: String, appearance: NSAppearance.Name, adjust: Bool)] = [
             ("window-light", .aqua, false),
             ("window-dark", .darkAqua, false),
@@ -41,7 +43,9 @@ enum Snapshot {
             panel.hasShadow = false
             panel.appearance = NSAppearance(named: shot.appearance)
             panel.contentView = view
-            panel.center()
+            if let frame = screen?.frame {
+                panel.setFrameOrigin(NSPoint(x: frame.midX - view.frame.width / 2, y: frame.midY - view.frame.height / 2))
+            }
             panel.makeKeyAndOrderFront(nil)
             view.layoutSubtreeIfNeeded()
             RunLoop.current.run(until: Date().addingTimeInterval(1))
@@ -54,25 +58,8 @@ enum Snapshot {
             }
             panel.orderOut(nil)
         }
+        withExtendedLifetime(retina) {}
         exit(0)
-    }
-
-    /// CI screens run at 1x. Switch to a HiDPI mode, if the screen has one, so the
-    /// captures come out at 2x. macOS switches back when the app quits.
-    private static func useRetinaMode() {
-        let display = CGMainDisplayID()
-        let options = [kCGDisplayShowDuplicateLowResolutionModes as String: true] as CFDictionary
-        guard let modes = CGDisplayCopyAllDisplayModes(display, options) as? [CGDisplayMode] else { return }
-        print("display modes: " + modes.map { "\($0.width)x\($0.height)@\($0.pixelWidth / max($0.width, 1))x" }.joined(separator: " "))
-        guard let mode = modes
-            .filter({ $0.pixelWidth == 2 * $0.width && $0.height >= 700 })
-            .max(by: { $0.width * $0.height < $1.width * $1.height })
-        else { return }
-        var config: CGDisplayConfigRef?
-        guard CGBeginDisplayConfiguration(&config) == .success else { return }
-        CGConfigureDisplayWithDisplayMode(config, display, mode, nil)
-        guard CGCompleteDisplayConfiguration(config, .forAppOnly) == .success else { return }
-        RunLoop.current.run(until: Date().addingTimeInterval(2))
     }
 
     /// Liquid Glass is composited by the window server, so on macOS 26 the window is

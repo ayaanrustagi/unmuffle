@@ -15,9 +15,9 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ayaanrustagi/unmuffle/screenshots/window-light.png" width="320" alt="The Unmuffle menu bar window in light mode">
+  <img src="https://raw.githubusercontent.com/ayaanrustagi/unmuffle/screenshots/window-light.png" width="340" alt="The Unmuffle menu bar window in light mode">
   &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/ayaanrustagi/unmuffle/screenshots/window-dark.png" width="320" alt="The Unmuffle menu bar window in dark mode">
+  <img src="https://raw.githubusercontent.com/ayaanrustagi/unmuffle/screenshots/window-dark.png" width="340" alt="The Unmuffle menu bar window in dark mode">
 </p>
 
 Unmuffle sits in the menu bar and cleans up everything your Mac plays: a browser tab, a
@@ -40,7 +40,8 @@ The screenshots above are rendered from the app by CI on every push.
 - **Boost.** Up to +12 dB behind a look-ahead limiter, so it never clips.
 
 Switch between Original and Enhanced at any time. The analyzer shows what comes in (gray)
-and what you hear (blue).
+and what you hear (blue). Pick a preset from the bar, push Boost, or open **Adjust** for a
+fader per stage.
 
 ## Before and after
 
@@ -104,7 +105,7 @@ More in [extension/README.md](extension/README.md).
 | Night Mode | One steady volume, clear voices, tamed explosions |
 | Maximum | Everything up, for the worst recordings |
 
-Each stage can be adjusted under **Adjust**. Settings are remembered.
+Each stage has its own fader under **Adjust**. Settings are remembered.
 
 ## Fix a downloaded file
 

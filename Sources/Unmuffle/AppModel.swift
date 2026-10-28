@@ -41,6 +41,7 @@ final class AppModel: ObservableObject {
         isRunning = true
         outputDeviceName = "AirPods Pro"
         spectrum = Self.sampleSpectrum
+        meters.outputPeak = 0.5
     }
 
     var activePreset: Preset? { Preset.matching(settings) }
