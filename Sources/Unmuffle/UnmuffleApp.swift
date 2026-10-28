@@ -9,10 +9,6 @@ struct UnmuffleApp: App {
         Snapshot.runIfRequested()
     }
 
-    init() {
-        Snapshot.runIfRequested()
-    }
-
     var body: some Scene {
         MenuBarExtra {
             ContentView()
